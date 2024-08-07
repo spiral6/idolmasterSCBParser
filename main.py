@@ -42,17 +42,16 @@ def writeHeaderCache(old_script: scb.Scb, new_script):
     new_script.write(header_cache)
 
 def writeSections(old_script: scb.Scb, new_script, translated_dialogue_json):
-    pre_msg = True
     offset = 0
     for section in old_script.sections:
         if offset == 0:
             offset = section.ofs_section
         if section.label[0:3] == 'MSG':
-            pass
             # TODO: implement changing offset of new MSG block
             # newMSGBlock = msg.constructMSGBlock(section, old_script, new_script, translated_dialogue_json)
             # section.block = newMSGBlock
             # section.len_section = len(newMSGBlock)
+            pass
 
         streamutility.writeStrToLong(new_script, section.label)
         streamutility.writePadding(new_script, 4, streamutility.Padding.post_MSG_padding)

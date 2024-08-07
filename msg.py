@@ -1,7 +1,6 @@
 import streamutility
 import scb
 import json
-import struct
 
 def constructMSGBlock(section, old_script: scb.Scb, new_script, translated_dialogue_json: json):
     streamutility.writeStrToLong(new_script, section.label)

@@ -94,8 +94,7 @@ class Scb(KaitaiStruct):
             MSG block header), and then the the dialogue string offset to the end 
             of the meta block offset. Meta block contains lengths and offsets 
             for each string, and its size/end of offset is 8 bytes multiplied by 
-            number of dialogue strings + padding.
-            """
+            number of dialogue strings + padding."""
             if hasattr(self, '_m_body'):
                 return self._m_body
 

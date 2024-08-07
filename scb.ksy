@@ -1,6 +1,10 @@
 meta:
   id: scb
   endian: be
+
+doc: |
+  Idolmaster SCB file. Contains game dialogue, scripts, etc.
+
 seq:
   - id: initialization_vector
     size: 16
@@ -12,8 +16,8 @@ seq:
     doc: | 
       Header cache. Contains file name, etc.
   - id: sections
-    type: section
     size: 32
+    type: section
     repeat: expr
     repeat-expr: 7
     doc: |
@@ -133,6 +137,3 @@ types:
           of the meta block offset. Meta block contains lengths and offsets 
           for each string, and its size/end of offset is 8 bytes multiplied by 
           number of dialogue strings + padding.
-
-doc: |
-  Idolmaster SCB file. Contains game dialogue, scripts, etc.
