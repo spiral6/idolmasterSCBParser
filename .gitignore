@@ -1,4 +1,5 @@
-./hibiki
-./translated
-./__pycache__
-./.pytest_cache
+/hibiki
+/translated
+/__pycache__
+/.pytest_cache
+/.vscode
