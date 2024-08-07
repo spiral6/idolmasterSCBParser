@@ -41,12 +41,6 @@ seq:
     size: sections[6].len_section
   - id: scb_padding
     size-eos: true
-  
-# instances:
-#   msg_block_instance:
-#     pos: 144 + sections[2].ofs_section
-#     size: sections[2].len_section
-
 
 types:
   header_cache:
