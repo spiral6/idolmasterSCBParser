@@ -30,6 +30,7 @@ def writeSCB(old_script: scb.Scb, new_script, translated_dialogue_json: json):
     writeHeaderCache(old_script, new_script)
     writeSections(old_script, new_script, translated_dialogue_json)
     writeBlocks(old_script, new_script)
+    # TODO: uncomment below line when finalized
     # writeSCBpadding(old_script, new_script)
 
 def writeIV(old_script: scb.Scb, new_script):
