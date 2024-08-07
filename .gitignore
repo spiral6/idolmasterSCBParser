@@ -1,0 +1,4 @@
+./hibiki
+./translated
+./__pycache__
+./.pytest_cache
