@@ -1,4 +1,5 @@
 import scb
+import msg
 import pathlib
 import json
 import streamutility
@@ -17,19 +18,19 @@ def exportJSON(script: scb.Scb, file: pathlib.Path):
         print(json.dump(json_file, f, ensure_ascii=False, indent=1))
     f.close()
 
-def importJSON(file: pathlib.Path):
-    with open(f'./translated/{file.name}.json', 'r', encoding='utf-16') as f:
+def importJSON(file: pathlib.Path) -> json:
+    with open(f'./translated/{file.name}_new.json', 'r', encoding='utf-16') as f:
         json_file = json.load(f)
     f.close()
 
     return json_file
 
-def writeSCB(old_script: scb.Scb, new_script):
+def writeSCB(old_script: scb.Scb, new_script, translated_dialogue_json: json):
     writeIV(old_script, new_script)
     writeHeaderCache(old_script, new_script)
     writeSections(old_script, new_script)
-    writeBlocks(old_script, new_script)
-    # writeSCBpadding()
+    writeBlocks(old_script, new_script, translated_dialogue_json)
+    # writeSCBpadding(old_script, new_script)
 
 def writeIV(old_script: scb.Scb, new_script):
     initialization_vector = old_script.initialization_vector
@@ -42,23 +43,29 @@ def writeHeaderCache(old_script: scb.Scb, new_script):
 def writeSections(old_script: scb.Scb, new_script):
     for section in old_script.sections:
         streamutility.writeStrToLong(new_script, section.label)
-        streamutility.writePadding(new_script, 4, "cc")
+        streamutility.writePadding(new_script, 4, streamutility.Padding.post_MSG_padding)
         streamutility.writeHexToLong(new_script, section.len_section)
         streamutility.writeHexToLong(new_script, section.ofs_section)
-        streamutility.writePadding(new_script, 16, "cc")
+        streamutility.writePadding(new_script, 16, streamutility.Padding.post_MSG_padding)
 
-def writeBlocks(old_script: scb.Scb, new_script):
+def writeBlocks(old_script: scb.Scb, new_script, translated_dialogue_json: json):
     block_padding = streamutility.Padding.pre_MSG_padding
 
     for section in old_script.sections:
-        # writeData(block.data, block.size)
-        # writePaddingToEnd(block_padding)
-        # if block.label == MSG:
-        #     block_padding = Padding.post_MSG_padding
-        if isinstance(section.block, scb.Scb.MsgBlock):
+        if section.label[0:3] == 'MSG':
             print("This is the message block.")
-            pass
-        # new_script.write(block)
+            # new_script.write(section.block)
+            msg.constructMSGBlock(section, old_script, new_script, translated_dialogue_json)
+            block_padding = streamutility.Padding.post_MSG_padding
+            # break ## DEBUG: remove after MSG block correctly implemented
+        else:
+            new_script.write(section.block)
+            # TODO: write padding to end of 16-sized block
+            streamutility.writePadding(new_script, section.len_section % 16, block_padding)
+        
+
+def writeSCBpadding(old_script: scb.Scb, new_script):
+    new_script.write(old_script.scb_padding)
 
 def main():
     files = [f for f in pathlib.Path().glob("./hibiki/*.scb.dec")]
@@ -71,8 +78,8 @@ def main():
 
     # exportJSON(hibiki_script, file)
     translated_dialogue_json = importJSON(file)
-    new_hibiki_script = open(f'./translated/{file.name}.newdec', "+wb")
-    writeSCB(hibiki_script, new_hibiki_script)
+    new_hibiki_script = open(f'./translated/{file.name}.translated', "+wb")
+    writeSCB(hibiki_script, new_hibiki_script, translated_dialogue_json)
 
 if __name__ == "__main__":
     main()
