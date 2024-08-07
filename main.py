@@ -28,8 +28,8 @@ def importJSON(file: pathlib.Path) -> json:
 def writeSCB(old_script: scb.Scb, new_script, translated_dialogue_json: json):
     writeIV(old_script, new_script)
     writeHeaderCache(old_script, new_script)
-    writeSections(old_script, new_script)
-    writeBlocks(old_script, new_script, translated_dialogue_json)
+    writeSections(old_script, new_script, translated_dialogue_json)
+    writeBlocks(old_script, new_script)
     # writeSCBpadding(old_script, new_script)
 
 def writeIV(old_script: scb.Scb, new_script):
@@ -40,27 +40,35 @@ def writeHeaderCache(old_script: scb.Scb, new_script):
     header_cache = old_script.header_cache.header_cache
     new_script.write(header_cache)
 
-def writeSections(old_script: scb.Scb, new_script):
+def writeSections(old_script: scb.Scb, new_script, translated_dialogue_json):
+    pre_msg = True
+    offset = 0
     for section in old_script.sections:
+        if offset == 0:
+            offset = section.ofs_section
+        if section.label[0:3] == 'MSG':
+            pass
+            # TODO: implement changing offset of new MSG block
+            # newMSGBlock = msg.constructMSGBlock(section, old_script, new_script, translated_dialogue_json)
+            # section.block = newMSGBlock
+            # section.len_section = len(newMSGBlock)
+
         streamutility.writeStrToLong(new_script, section.label)
         streamutility.writePadding(new_script, 4, streamutility.Padding.post_MSG_padding)
         streamutility.writeHexToLong(new_script, section.len_section)
-        streamutility.writeHexToLong(new_script, section.ofs_section)
+        streamutility.writeHexToLong(new_script, offset)
         streamutility.writePadding(new_script, 16, streamutility.Padding.post_MSG_padding)
+        offset += section.len_section
 
-def writeBlocks(old_script: scb.Scb, new_script, translated_dialogue_json: json):
+def writeBlocks(old_script: scb.Scb, new_script):
     block_padding = streamutility.Padding.pre_MSG_padding
 
     for section in old_script.sections:
         if section.label[0:3] == 'MSG':
-            print("This is the message block.")
-            # new_script.write(section.block)
-            msg.constructMSGBlock(section, old_script, new_script, translated_dialogue_json)
+            # print("This is the message block.")
             block_padding = streamutility.Padding.post_MSG_padding
-            # break ## DEBUG: remove after MSG block correctly implemented
         else:
             new_script.write(section.block)
-            # TODO: write padding to end of 16-sized block
             streamutility.writePadding(new_script, section.len_section % 16, block_padding)
         
 

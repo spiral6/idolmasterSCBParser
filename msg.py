@@ -40,3 +40,5 @@ def constructMSGBlock(section, old_script: scb.Scb, new_script, translated_dialo
         new_script.write(bytes('\0', 'utf-16-be'))
 
     streamutility.writePadding(new_script, dialogue_length % 16, streamutility.Padding.pre_MSG_padding)
+
+    # TODO: return MSG block as byte array, and construct into byte array and not write directly to file.
