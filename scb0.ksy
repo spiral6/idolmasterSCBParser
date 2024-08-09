@@ -1,20 +1,10 @@
 meta:
-  id: scb
+  id: scb0
+  file-extension: scb0
   endian: be
-
-doc: |
-  Idolmaster SCB file. Contains game dialogue, scripts, etc.
-
-seq:
-  - id: initialization_vector
-    size: 16
-    doc: |
-      Initialization vector for AES encyption for SCB file.
-  - id: header_cache
-    size: 240
-    type: header_cache
-    doc: | 
-      Header cache. Contains file name, etc.
+seq: 
+  - id: header
+    size: 112
   - id: sections
     size: 32
     type: section
@@ -43,66 +33,8 @@ seq:
     size: sections[5].len_section
   - id: rsn_block
     size: sections[6].len_section
-  - id: scb_padding
-    size-eos: true
-
+    
 types:
-  header_cache:
-    seq:
-      - id: header
-        size: 12
-      - id: num_files
-        type: u4be
-      - id: header_cache_padding
-        size: 32
-      - id: ofs_entry
-        type: u4be
-      - id: ofs_msg
-        type: u4be
-      - id: ofs_file
-        type: u4be
-      - id: header_cache_padding_2
-        size: 4
-      - id: files
-        size: 32
-        type: pac_file
-        repeat: expr
-        repeat-expr: num_files
-      
-    instances:
-      scb_section:
-        io: _root._io
-        pos: 144 + files[0].ofs_file
-        size: 112
-        doc: |
-          SCB section. Subsection of header cache.
-      file_name:
-        pos: 176
-        type: strz
-        encoding: ASCII
-        doc: | 
-          File name. Inside of header cache.
-  
-  pac_file:
-    seq:
-      - id: filesize_padding
-        size: 8
-      - id: len_file
-        type: u4be
-      - id: ofs_file
-        type: u4be
-      - id: fn_index
-        type: u4be
-      - id: fp_index
-        type: u4be
-      - id: file_meta_padding
-        size-eos: true
-    instances:
-      file: 
-        io: _root._io
-        pos: 144 + ofs_file
-        size: len_file
-  
   section:
     seq:
       - id: label
@@ -120,7 +52,7 @@ types:
     instances:
       block:
         io: _root._io
-        pos: 144 + ofs_section
+        pos: ofs_section
         size: len_section
         
   msg_block:

@@ -47,7 +47,20 @@ class Scb(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.header_cache = self._io.read_bytes_full()
+            self.header = self._io.read_bytes(12)
+            self.num_files = self._io.read_u4be()
+            self.header_cache_padding = self._io.read_bytes(32)
+            self.ofs_entry = self._io.read_u4be()
+            self.ofs_msg = self._io.read_u4be()
+            self.ofs_file = self._io.read_u4be()
+            self.header_cache_padding_2 = self._io.read_bytes(4)
+            self._raw_files = []
+            self.files = []
+            for i in range(self.num_files):
+                self._raw_files.append(self._io.read_bytes(32))
+                _io__raw_files = KaitaiStream(BytesIO(self._raw_files[i]))
+                self.files.append(Scb.PacFile(_io__raw_files, self, self._root))
+
 
         @property
         def scb_section(self):
@@ -56,10 +69,11 @@ class Scb(KaitaiStruct):
             if hasattr(self, '_m_scb_section'):
                 return self._m_scb_section
 
-            _pos = self._io.pos()
-            self._io.seek(128)
-            self._m_scb_section = self._io.read_bytes(112)
-            self._io.seek(_pos)
+            io = self._root._io
+            _pos = io.pos()
+            io.seek((144 + self.files[0].ofs_file))
+            self._m_scb_section = io.read_bytes(112)
+            io.seek(_pos)
             return getattr(self, '_m_scb_section', None)
 
         @property
@@ -130,6 +144,34 @@ class Scb(KaitaiStruct):
             self._m_block = io.read_bytes(self.len_section)
             io.seek(_pos)
             return getattr(self, '_m_block', None)
+
+
+    class PacFile(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
+
+        def _read(self):
+            self.filesize_padding = self._io.read_bytes(8)
+            self.len_file = self._io.read_u4be()
+            self.ofs_file = self._io.read_u4be()
+            self.fn_index = self._io.read_u4be()
+            self.fp_index = self._io.read_u4be()
+            self.file_meta_padding = self._io.read_bytes_full()
+
+        @property
+        def file(self):
+            if hasattr(self, '_m_file'):
+                return self._m_file
+
+            io = self._root._io
+            _pos = io.pos()
+            io.seek((144 + self.ofs_file))
+            self._m_file = io.read_bytes(self.len_file)
+            io.seek(_pos)
+            return getattr(self, '_m_file', None)
 
 
     class MsgBlock(KaitaiStruct):

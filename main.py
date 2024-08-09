@@ -3,6 +3,9 @@ import msg
 import pathlib
 import json
 import streamutility
+import scb0
+import io
+
 
 def exportJSON(script: scb.Scb, file: pathlib.Path):
     
@@ -25,69 +28,111 @@ def importJSON(file: pathlib.Path) -> json:
 
     return json_file
 
-def writeSCB(old_script: scb.Scb, new_script, translated_dialogue_json: json):
-    writeIV(old_script, new_script)
-    writeHeaderCache(old_script, new_script)
-    writeSections(old_script, new_script, translated_dialogue_json)
-    writeBlocks(old_script, new_script)
-    # TODO: uncomment below line when finalized
-    # writeSCBpadding(old_script, new_script)
+def extractSCB(file: pathlib.Path, old_script: scb.Scb):
+    new_scb0 = open(f'./translated/{file.name}.scb0', "+wb")
+    new_scb0.write(old_script.header_cache.files[0].file)
+    new_scb0.flush()
+    return new_scb0
 
-def writeIV(old_script: scb.Scb, new_script):
-    initialization_vector = old_script.initialization_vector
-    new_script.write(initialization_vector)
+def injectTranslation(new_SCB0, translated_dialogue_json):
+    newMSGBlock = msg.constructMSGBlock(new_SCB0, translated_dialogue_json)
+    new_hibiki_script = open(f'{new_SCB0.name}.translated', "+wb")
+    file_SCB0 = scb0.Scb0.from_file(new_SCB0.name)
+    new_hibiki_script.write(file_SCB0.header)
+    
+    # Write header of sections for new SCB file
+    new_section_offset = 0
+    for section in file_SCB0.sections:
 
-def writeHeaderCache(old_script: scb.Scb, new_script):
-    header_cache = old_script.header_cache.header_cache
-    new_script.write(header_cache)
+        label = section.label
+        len_section = section.len_section
 
-def writeSections(old_script: scb.Scb, new_script, translated_dialogue_json):
-    offset = 0
-    for section in old_script.sections:
-        if offset == 0:
-            offset = section.ofs_section
+        if new_section_offset == 0:
+            new_section_offset = section.ofs_section
         if section.label[0:3] == 'MSG':
-            # TODO: implement changing offset of new MSG block
-            # newMSGBlock = msg.constructMSGBlock(section, old_script, new_script, translated_dialogue_json)
-            # section.block = newMSGBlock
-            # section.len_section = len(newMSGBlock)
-            pass
+            len_section = len(newMSGBlock.getvalue()) # gets length of new MSG block
 
-        streamutility.writeStrToLong(new_script, section.label)
-        streamutility.writePadding(new_script, 4, streamutility.Padding.post_MSG_padding)
-        streamutility.writeHexToLong(new_script, section.len_section)
-        streamutility.writeHexToLong(new_script, offset)
-        streamutility.writePadding(new_script, 16, streamutility.Padding.post_MSG_padding)
-        offset += section.len_section
+        streamutility.writeStrToLong(new_hibiki_script, label)
+        streamutility.writePadding(new_hibiki_script, 4, streamutility.Padding.post_MSG_padding)
+        streamutility.writeHexToLong(new_hibiki_script, len_section)
+        streamutility.writeHexToLong(new_hibiki_script, new_section_offset)
+        streamutility.writePadding(new_hibiki_script, 16, streamutility.Padding.post_MSG_padding)
+        new_section_offset += len_section
 
-def writeBlocks(old_script: scb.Scb, new_script):
-    block_padding = streamutility.Padding.pre_MSG_padding
-
-    for section in old_script.sections:
+    # Write section data
+    for section in file_SCB0.sections:
+        block = section.block
         if section.label[0:3] == 'MSG':
-            # print("This is the message block.")
-            block_padding = streamutility.Padding.post_MSG_padding
-        else:
-            new_script.write(section.block)
-            streamutility.writePadding(new_script, section.len_section % 16, block_padding)
+            block = newMSGBlock.getvalue()
+        new_hibiki_script.write(block)
+
+    new_hibiki_script.flush()
+
+    return new_hibiki_script
+
+def writeSCB(file, old_script: scb.Scb, new_SCB0):
+    
+    new_script = open(f'./translated/{file.name}.translated', "+wb")
+    
+    writeIV(new_script)
+    writePAC(old_script, new_script, new_SCB0)
+
+def writeIV(new_script):
+    # initialization_vector = old_script.initialization_vector
+    # new_script.write(initialization_vector)
+    blank_iv = bytearray([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    new_script.write(blank_iv)
+
+def writePAC(old_script: scb.Scb, new_script: io.BufferedRandom, new_SCB0: io.BufferedRandom):
+    # PAC Header
+    new_script.write(old_script.header_cache.header)
+    streamutility.writeHexToLong(new_script, old_script.header_cache.num_files)
+    new_script.write(old_script.header_cache.header_cache_padding)
+    streamutility.writeHexToLong(new_script, old_script.header_cache.ofs_entry)
+    streamutility.writeHexToLong(new_script, old_script.header_cache.ofs_msg)
+    streamutility.writeHexToLong(new_script, old_script.header_cache.ofs_file)
+    new_script.write(old_script.header_cache.header_cache_padding_2)
+
+    new_file_offset = 0
+    for i in range(0, len(old_script.header_cache.files)):
+        file: scb.Scb.PacFile
+        file = old_script.header_cache.files[i]
+        file_length = file.len_file
         
+        
+        new_script.write(file.filesize_padding)
+        if i == 0: # SCB file length, from new SCB0
+            file_length = new_SCB0.tell()
+        streamutility.writeHexToLong(new_script, file_length)
+        streamutility.writeHexToLong(new_script, new_file_offset)
+        streamutility.writeHexToLong(new_script, file.fn_index)
+        streamutility.writeHexToLong(new_script, file.fp_index)
+        new_script.write(file.file_meta_padding)
 
-def writeSCBpadding(old_script: scb.Scb, new_script):
+        new_file_offset += file_length
+
+    # PAC files
+    new_SCB0.seek(0)
+    new_script.write(new_SCB0.read())
     new_script.write(old_script.scb_padding)
 
 def main():
     files = [f for f in pathlib.Path().glob("./hibiki/*.scb.dec")]
-    selected_script = "hib_w01_01.scb.dec"
+    selected_script = "hib_w01_05.scb.dec"
     for file in files:
         if file.name == selected_script:
             file = file.resolve()
             break
     hibiki_script = scb.Scb.from_file(file)
 
+    # Extract JSON
     # exportJSON(hibiki_script, file)
+    
+    # Inject JSON
     translated_dialogue_json = importJSON(file)
-    new_hibiki_script = open(f'./translated/{file.name}.translated', "+wb")
-    writeSCB(hibiki_script, new_hibiki_script, translated_dialogue_json)
+    newSCB0 = extractSCB(file, hibiki_script)
+    newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
+    writeSCB(file, hibiki_script, newSCB0translated)
 
 if __name__ == "__main__":
     main()
