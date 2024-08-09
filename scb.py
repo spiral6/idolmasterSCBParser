@@ -17,7 +17,6 @@ class Scb(KaitaiStruct):
         self._read()
 
     def _read(self):
-        self.initialization_vector = self._io.read_bytes(16)
         self._raw_header_cache = self._io.read_bytes(240)
         _io__raw_header_cache = KaitaiStream(BytesIO(self._raw_header_cache))
         self.header_cache = Scb.HeaderCache(_io__raw_header_cache, self, self._root)

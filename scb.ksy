@@ -6,10 +6,10 @@ doc: |
   Idolmaster SCB file. Contains game dialogue, scripts, etc.
 
 seq:
-  - id: initialization_vector
-    size: 16
-    doc: |
-      Initialization vector for AES encyption for SCB file.
+  # - id: initialization_vector
+  #   size: 16
+  #   doc: |
+  #     Initialization vector for AES encyption for SCB file.
   - id: header_cache
     size: 240
     type: header_cache

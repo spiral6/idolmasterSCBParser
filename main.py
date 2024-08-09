@@ -74,7 +74,7 @@ def writeSCB(file, old_script: scb.Scb, new_SCB0):
     
     new_script = open(f'./translated/{file.name}.translated', "+wb")
     
-    writeIV(new_script)
+    # writeIV(new_script)
     writePAC(old_script, new_script, new_SCB0)
 
 def writeIV(new_script):
