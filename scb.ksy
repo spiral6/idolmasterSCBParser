@@ -100,7 +100,7 @@ types:
     instances:
       file: 
         io: _root._io
-        pos: 144 + ofs_file
+        pos: _parent.ofs_file + ofs_file
         size: len_file
   
   section:

@@ -1,3 +1,1 @@
-W:\Standalone\Programming\Programs\KaitaiStruct\bin\kaitai-struct-compiler.bat "N:\Modding and Homebrew\im@s translation\DECRYPTION_TOOLS\kaitai_script\scb.ksy" --outdir "N:\Modding and Homebrew\im@s translation\DECRYPTION_TOOLS\kaitai_script" -t python
-
-W:\Standalone\Programming\Programs\KaitaiStruct\bin\kaitai-struct-compiler.bat "N:\Modding and Homebrew\im@s translation\DECRYPTION_TOOLS\kaitai_script\scb0.ksy" --outdir "N:\Modding and Homebrew\im@s translation\DECRYPTION_TOOLS\kaitai_script" -t python
+W:\Standalone\Programming\Programs\KaitaiStruct\bin\kaitai-struct-compiler.bat "N:\Modding and Homebrew\im@s translation\translation tools\kaitai_script\scb.ksy" --outdir "N:\Modding and Homebrew\im@s translation\translation tools\kaitai_script" -t python

@@ -117,8 +117,8 @@ def writePAC(old_script: scb.Scb, new_script: io.BufferedRandom, new_SCB0: io.Bu
     new_script.write(old_script.scb_padding)
 
 def main():
-    files = [f for f in pathlib.Path().glob("./hibiki/*.scb.dec")]
-    selected_script = "hib_w01_05.scb.dec"
+    files = [f for f in pathlib.Path().glob("./hibiki/*.scb.dec.culledIV")]
+    selected_script = "hib_w01_05.scb.dec.culledIV"
     for file in files:
         if file.name == selected_script:
             file = file.resolve()

@@ -167,7 +167,7 @@ class Scb(KaitaiStruct):
 
             io = self._root._io
             _pos = io.pos()
-            io.seek((144 + self.ofs_file))
+            io.seek((self._parent.ofs_file + self.ofs_file))
             self._m_file = io.read_bytes(self.len_file)
             io.seek(_pos)
             return getattr(self, '_m_file', None)
