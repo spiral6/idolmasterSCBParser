@@ -1,7 +1,8 @@
+from file_formats import scb
+from file_formats import scb0
+
 import streamutility
-import scb
 import json
-import scb0
 import io
 import pathlib
 

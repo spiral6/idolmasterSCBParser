@@ -1,11 +1,13 @@
-import scb
-import msg
+from file_formats import scb
+from file_formats import msg
+from file_formats import scb0
+
 import pathlib
 import json
 import streamutility
-import scb0
 import io
 
+translation_directory = ""
 
 def exportJSON(script: scb.Scb, file: pathlib.Path):
     
@@ -17,26 +19,34 @@ def exportJSON(script: scb.Scb, file: pathlib.Path):
         json_file["strings"].append(ds.body)
         # count += 1
 
-    with open(f'./translated/{file.name}.json', 'w', encoding='utf-16') as f:
-        print(json.dump(json_file, f, ensure_ascii=False, indent=1))
+    global translation_directory
+
+    json_file_path = translation_directory / f'{file.name}.json'
+    with open(json_file_path, 'w', encoding='utf-16') as f:
+        json.dump(json_file, f, ensure_ascii=False, indent=1)
     f.close()
 
 def importJSON(file: pathlib.Path) -> json:
-    with open(f'./translated/{file.name}_new.json', 'r', encoding='utf-16') as f:
+    json_file_path = translation_directory / f'{file.name}_new.json'
+    with open(json_file_path, 'r', encoding='utf-16') as f:
         json_file = json.load(f)
     f.close()
 
     return json_file
 
 def extractSCB(file: pathlib.Path, old_script: scb.Scb):
-    new_scb0 = open(f'./translated/{file.name}.scb0', "+wb")
+    global translation_directory
+    scb0_file_path = translation_directory / f'{file.name}.scb0'
+    new_scb0 = open(scb0_file_path, "+wb")
     new_scb0.write(old_script.header_cache.files[0].file)
     new_scb0.flush()
     return new_scb0
 
 def injectTranslation(new_SCB0, translated_dialogue_json):
+    global translation_directory
     newMSGBlock = msg.constructMSGBlock(new_SCB0, translated_dialogue_json)
-    new_hibiki_script = open(f'{new_SCB0.name}.translated', "+wb")
+    new_SCB0_file_path = translation_directory / f'{new_SCB0.name}.translated'
+    new_hibiki_script = open(new_SCB0_file_path, "+wb")
     file_SCB0 = scb0.Scb0.from_file(new_SCB0.name)
     new_hibiki_script.write(file_SCB0.header)
     
@@ -71,8 +81,8 @@ def injectTranslation(new_SCB0, translated_dialogue_json):
     return new_hibiki_script
 
 def writeSCB(file, old_script: scb.Scb, new_SCB0):
-    
-    new_script = open(f'./translated/{file.name}.translated', "+wb")
+    global translation_directory
+    new_script = open(f'{translation_directory.resolve()+"/"}{file.name}.translated', "+wb")
     
     # writeIV(new_script)
     writePAC(old_script, new_script, new_SCB0)
@@ -117,8 +127,13 @@ def writePAC(old_script: scb.Scb, new_script: io.BufferedRandom, new_SCB0: io.Bu
     new_script.write(old_script.scb_padding)
 
 def main():
-    files = [f for f in pathlib.Path().glob("./hibiki/*.scb.dec.culledIV")]
+    character = 'hibiki'
+    files = [f for f in pathlib.Path().glob(f"./dialogue/{character}/raw/*.scb.dec.culledIV")]
     selected_script = "hib_w01_05.scb.dec.culledIV"
+
+    global translation_directory
+    translation_directory = pathlib.Path(f"./dialogue/{character}/translated/").resolve()
+
     for file in files:
         if file.name == selected_script:
             file = file.resolve()
@@ -126,13 +141,13 @@ def main():
     hibiki_script = scb.Scb.from_file(file)
 
     # Extract JSON
-    # exportJSON(hibiki_script, file)
+    exportJSON(hibiki_script, file)
     
     # Inject JSON
-    translated_dialogue_json = importJSON(file)
-    newSCB0 = extractSCB(file, hibiki_script)
-    newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
-    writeSCB(file, hibiki_script, newSCB0translated)
+    # translated_dialogue_json = importJSON(file)
+    # newSCB0 = extractSCB(file, hibiki_script)
+    # newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
+    # writeSCB(file, hibiki_script, newSCB0translated)
 
 if __name__ == "__main__":
     main()
