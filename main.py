@@ -46,9 +46,9 @@ def injectTranslation(new_SCB0, translated_dialogue_json):
     global translation_directory
     newMSGBlock = msg.constructMSGBlock(new_SCB0, translated_dialogue_json)
     new_SCB0_file_path = translation_directory / f'{new_SCB0.name}.translated'
-    new_hibiki_script = open(new_SCB0_file_path, "+wb")
+    new_script = open(new_SCB0_file_path, "+wb")
     file_SCB0 = scb0.Scb0.from_file(new_SCB0.name)
-    new_hibiki_script.write(file_SCB0.header)
+    new_script.write(file_SCB0.header)
     
     # Write header of sections for new SCB file
     new_section_offset = 0
@@ -62,11 +62,11 @@ def injectTranslation(new_SCB0, translated_dialogue_json):
         if section.label[0:3] == 'MSG':
             len_section = len(newMSGBlock.getvalue()) # gets length of new MSG block
 
-        streamutility.writeStrToLong(new_hibiki_script, label)
-        streamutility.writePadding(new_hibiki_script, 4, streamutility.Padding.post_MSG_padding)
-        streamutility.writeHexToLong(new_hibiki_script, len_section)
-        streamutility.writeHexToLong(new_hibiki_script, new_section_offset)
-        streamutility.writePadding(new_hibiki_script, 16, streamutility.Padding.post_MSG_padding)
+        streamutility.writeStrToLong(new_script, label)
+        streamutility.writePadding(new_script, 4, streamutility.Padding.post_MSG_padding)
+        streamutility.writeHexToLong(new_script, len_section)
+        streamutility.writeHexToLong(new_script, new_section_offset)
+        streamutility.writePadding(new_script, 16, streamutility.Padding.post_MSG_padding)
         new_section_offset += len_section
 
     # Write section data
@@ -74,11 +74,11 @@ def injectTranslation(new_SCB0, translated_dialogue_json):
         block = section.block
         if section.label[0:3] == 'MSG':
             block = newMSGBlock.getvalue()
-        new_hibiki_script.write(block)
+        new_script.write(block)
 
-    new_hibiki_script.flush()
+    new_script.flush()
 
-    return new_hibiki_script
+    return new_script
 
 def writeSCB(file, old_script: scb.Scb, new_SCB0):
     global translation_directory
@@ -128,27 +128,30 @@ def writePAC(old_script: scb.Scb, new_script: io.BufferedRandom, new_SCB0: io.Bu
     new_script.write(old_script.scb_padding)
 
 def main():
-    character = 'hibiki'
+    character = 'all'
     files = [f for f in pathlib.Path().glob(f"./dialogue/{character}/raw/*.scb.dec.culledIV")]
     selected_script = "hib_w01_05.scb.dec.culledIV"
 
     global translation_directory
     translation_directory = pathlib.Path(f"./dialogue/{character}/translated/").resolve()
 
-    for file in files:
-        if file.name == selected_script:
-            file = file.resolve()
-            break
-    hibiki_script = scb.Scb.from_file(file)
-
+    ### Singular file
+    # for file in files:
+    #     if file.name == selected_script:
+    #         file = file.resolve()
+    #         break
+    
     # Extract JSON
-    # exportJSON(hibiki_script, file)
+    for file in files:
+        script = scb.Scb.from_file(file)
+        exportJSON(script, file)
     
     # Inject JSON
-    translated_dialogue_json = importJSON(file)
-    newSCB0 = extractSCB(file, hibiki_script)
-    newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
-    writeSCB(file, hibiki_script, newSCB0translated)
+    # for file in files:
+    #     translated_dialogue_json = importJSON(file)
+    #     newSCB0 = extractSCB(file, hibiki_script)
+    #     newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
+    #     writeSCB(file, hibiki_script, newSCB0translated)
 
 if __name__ == "__main__":
     main()
