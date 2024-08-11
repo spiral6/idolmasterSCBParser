@@ -112,7 +112,7 @@ class Scb(KaitaiStruct):
                 return self._m_body
 
             _pos = self._io.pos()
-            self._io.seek((((48 + (len(self._parent.dialogue_strings) * 8)) + (len(self._parent.dialogue_strings_block_padding) - 1)) + self.ofs_dialogue_string))
+            self._io.seek(((48 + (len(self._parent.dialogue_strings) * 8)) + self.ofs_dialogue_string))
             self._m_body = (self._io.read_bytes(self.len_dialogue_string)).decode(u"utf-16be")
             self._io.seek(_pos)
             return getattr(self, '_m_body', None)
@@ -204,14 +204,6 @@ class Scb(KaitaiStruct):
             for i in range(self._parent.dialogue_strings_count):
                 self.dialogue_strings.append(Scb.DialogueString(self._io, self, self._root))
 
-            self.dialogue_strings_block_padding = []
-            i = 0
-            while True:
-                _ = self._io.read_bytes(1)
-                self.dialogue_strings_block_padding.append(_)
-                if _ != b"\xCD":
-                    break
-                i += 1
 
 
 

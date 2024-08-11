@@ -22,7 +22,7 @@ def exportJSON(script: scb.Scb, file: pathlib.Path):
     global translation_directory
 
     json_file_path = translation_directory / f'{file.name}.json'
-    with open(json_file_path, 'w', encoding='utf-16') as f:
+    with open(json_file_path, 'w+', encoding='utf-16') as f:
         json.dump(json_file, f, ensure_ascii=False, indent=1)
     f.close()
 
