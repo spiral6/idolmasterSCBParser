@@ -82,7 +82,8 @@ def injectTranslation(new_SCB0, translated_dialogue_json):
 
 def writeSCB(file, old_script: scb.Scb, new_SCB0):
     global translation_directory
-    new_script = open(f'{translation_directory.resolve()+"/"}{file.name}.translated', "+wb")
+    new_script_path = translation_directory / f'{file.name}.translated'
+    new_script = open(new_script_path, "+wb")
     
     # writeIV(new_script)
     writePAC(old_script, new_script, new_SCB0)
@@ -141,13 +142,13 @@ def main():
     hibiki_script = scb.Scb.from_file(file)
 
     # Extract JSON
-    exportJSON(hibiki_script, file)
+    # exportJSON(hibiki_script, file)
     
     # Inject JSON
-    # translated_dialogue_json = importJSON(file)
-    # newSCB0 = extractSCB(file, hibiki_script)
-    # newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
-    # writeSCB(file, hibiki_script, newSCB0translated)
+    translated_dialogue_json = importJSON(file)
+    newSCB0 = extractSCB(file, hibiki_script)
+    newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
+    writeSCB(file, hibiki_script, newSCB0translated)
 
 if __name__ == "__main__":
     main()
