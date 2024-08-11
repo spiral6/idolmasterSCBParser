@@ -4,6 +4,7 @@ using dialogue_JSONandCSVparser.Deserialization.CSV;
 using dialogue_JSONandCSVparser.Deserialization.Json;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 
 public class Program
@@ -40,7 +41,7 @@ public class Program
     
     private static void WriteCSV(List<Dialogue> dialogueFiles, DirectoryInfo dir)
     {
-        using var writer = new StreamWriter(Path.Combine(dir.FullName, "combineddialogue.csv"));
+        using var writer = new StreamWriter(Path.Combine(dir.FullName, "combineddialogue.csv"), false, Encoding.UTF8, 512);
         //using var writer = new StreamWriter("C:\\Users\\kentw\\source\\repos\\dialogue_JSONandCSVparser\\OutputFiles\\dialogue.csv");
         using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
         {
