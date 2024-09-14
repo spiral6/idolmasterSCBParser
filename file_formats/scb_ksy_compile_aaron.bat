@@ -1,0 +1,1 @@
+D:\kaitai\bin\kaitai-struct-compiler.bat "G:\IMAS-OTHERS\IMAS2\IMAS2DEC\imas2dec\imas2dec\idolmasterSCBParser\file_formats\scb.ksy" --outdir "G:\IMAS-OTHERS\IMAS2\IMAS2DEC\imas2dec\imas2dec\idolmasterSCBParser\file_formats" -t python

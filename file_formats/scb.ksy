@@ -152,10 +152,8 @@ types:
         type: dialogue_string
         repeat: expr
         repeat-expr: _parent.dialogue_strings_count
-      # - id: dialogue_strings_block_padding
-      #   size: 1
-      #   repeat: until
-      #   repeat-until: (_parent.dialogue_strings_count != 0) and (_ != [0xcd])
+      - id: dialogue_strings_block_padding
+        size: '((dialogue_strings.size * 8) % 16 == 0) ? 0 : (16 - (dialogue_strings.size * 8) % 16)'
 
   dialogue_string:
     seq:
@@ -166,7 +164,7 @@ types:
     instances:
       body:
         # io: _root._io
-        pos: 48 + (_parent.dialogue_strings.size * 8) + ofs_dialogue_string #+ (_parent.dialogue_strings_block_padding.size - 1)
+        pos: 48 + (_parent.dialogue_strings.size * 8) + _parent.dialogue_strings_block_padding.size + ofs_dialogue_string #+ (_parent.dialogue_strings_block_padding.size - 1)
         size: len_dialogue_string
         type: str
         encoding: utf-16be
