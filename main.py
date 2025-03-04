@@ -128,7 +128,7 @@ def writePAC(old_script: scb.Scb, new_script: io.BufferedRandom, new_SCB0: io.Bu
     new_script.write(old_script.scb_padding)
 
 def main():
-    character = 'all'
+    character = 'hibiki'
     files = [f for f in pathlib.Path().glob(f"./dialogue/{character}/raw/*.scb.dec.culledIV")]
     selected_script = "hib_w01_05.scb.dec.culledIV"
 
@@ -142,17 +142,25 @@ def main():
     #         break
     
     # Extract JSON
-    for file in files:
-        script = scb.Scb.from_file(file)
-        exportJSON(script, file)
+    # for file in files:
+    #     script = scb.Scb.from_file(file)
+    #     exportJSON(script, file)
     
     # Inject JSON
-    # for file in files:
-    #     translated_dialogue_json = importJSON(file)
-    #     newSCB0 = extractSCB(file, hibiki_script)
-    #     newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
-    #     writeSCB(file, hibiki_script, newSCB0translated)
-
+    for file in files:
+        try:
+            print(f"opened {file.name}")
+            translated_dialogue_json = importJSON(file)
+            old_script = scb.Scb.from_file(file)
+            newSCB0 = extractSCB(file, old_script)
+            newSCB0translated = injectTranslation(newSCB0, translated_dialogue_json)
+            writeSCB(file, old_script, newSCB0translated)
+            print(f"wrote {file.name}")
+            print()
+        except Exception as e:
+            print(f"Error with file: {file.name}")
+            print(e)
+            
 if __name__ == "__main__":
     main()
 
