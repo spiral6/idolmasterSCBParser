@@ -1,7 +1,7 @@
 import pathlib
 import subprocess
 
-folder = pathlib.Path('./dialogue/all/raw').resolve()
+folder = pathlib.Path('./dialogue/chihaya/raw').resolve()
 files = [f for f in folder.glob("*.scb")]
 
 for file in files:
